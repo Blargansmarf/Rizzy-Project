@@ -29,7 +29,7 @@ namespace SLAMBotClient
         TCPSlamClient tcpClient;
         ControllerSlam controller;
         //SkeletonSlam skeleton;
-        //VoiceControl voice;
+        VoiceControl voice;
         ArduinoSlam.ArduinoStatus ArduinoStatus = ArduinoSlam.ArduinoStatus.NotConnected;
 
         #endregion
@@ -54,8 +54,8 @@ namespace SLAMBotClient
         {
             //skeleton = new SkeletonSlam();
             //skeleton.onHandHeightChanged += new EventHandler<SkeletonSlam.SkeletonArgs>(skeleton_onHandHeightChanged);
-            //voice = new VoiceControl();
-            //voice.voiceCommandHeard += new EventHandler<VoiceControl.VoiceArgs>(voice_commandHeard);
+            voice = new VoiceControl();
+            voice.voiceCommandHeard += new EventHandler<VoiceControl.VoiceArgs>(voice_commandHeard);
             controller = new ControllerSlam();
             controller.OnButtonsChanged += new EventHandler<ControllerSlam.ButtonArgs>(controller_OnButtonsChanged);
             tcpClient = new TCPSlamClient();

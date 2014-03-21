@@ -26,6 +26,7 @@ namespace SLAMBotClasses
         private double setRightPower;
         private double setLeftPower;
         private SpeechRecognitionEngine sre;
+        private bool follow;
 
 
         #endregion
@@ -53,6 +54,21 @@ namespace SLAMBotClasses
         {
             kinectSensor = KinectSensor.KinectSensors[0];
 
+            TransformSmoothParameters smoothingParam = new TransformSmoothParameters();
+            {
+                smoothingParam.Smoothing = 0.5f;
+                smoothingParam.Correction = 0.5f;
+                smoothingParam.Prediction = 0.5f;
+                smoothingParam.JitterRadius = 0.05f;
+                smoothingParam.MaxDeviationRadius = 0.04f;
+            };
+
+
+
+            kinectSensor.SkeletonStream.Enable(smoothingParam);
+
+            kinectSensor.SkeletonFrameReady += getSkeleton;
+
             sre = CreateSpeechRecognizer();
 
             kinectSensor.Start();
@@ -77,7 +93,7 @@ namespace SLAMBotClasses
         public void reset()
         {
             lastSend = DateTime.Now;
-
+            follow = false;
         }
 
         #endregion
@@ -120,7 +136,7 @@ namespace SLAMBotClasses
             grammar.Add("stop");
             grammar.Add("turn right");
             grammar.Add("turn left");
-            //grammar.Add("hello");
+            grammar.Add("skeleton");
             //Add words here
 
 
@@ -153,20 +169,35 @@ namespace SLAMBotClasses
             switch (e.Result.Text.ToUpperInvariant())
             {
                 case ("GO"):
-                    setRightPower = .5;
-                    setLeftPower = .5;
+                    if (!follow)
+                    {
+                        setRightPower = .5;
+                        setLeftPower = .5;
+                    }
                     break;
                 case ("STOP"):
-                    setRightPower = 0;
-                    setLeftPower = 0;
+                    if (!follow)
+                    {
+                        setRightPower = 0;
+                        setLeftPower = 0;
+                    }
                     break;
                 case ("TURN RIGHT"):
-                    setRightPower = .8;
-                    setLeftPower = .2;
+                    if (!follow)
+                    {
+                        setRightPower = .8;
+                        setLeftPower = .2;
+                    }
                     break;
                 case ("TURN LEFT"):
-                    setRightPower = .2;
-                    setLeftPower = .8;
+                    if (!follow)
+                    {
+                        setRightPower = .2;
+                        setLeftPower = .8;
+                    }
+                    break;
+                case("SKELETON"):
+                    follow = !follow;
                     break;
                 default:
                     break;
@@ -189,6 +220,45 @@ namespace SLAMBotClasses
             RejectSpeech(e.Result);
         }
 
+        public void getSkeleton(object sender, SkeletonFrameReadyEventArgs e)
+        {
+            if (follow)
+            {
+                setRightPower = 1.0f;
+                setLeftPower = -1.0f;
+                SkeletonFrame skelFrame = e.OpenSkeletonFrame();
+                if (skelFrame != null)
+                {
+                    Skeleton[] skeletons = new Skeleton[skelFrame.SkeletonArrayLength];
+
+                    skelFrame.CopySkeletonDataTo(skeletons);
+
+                    skelFrame.Dispose();
+
+                    foreach (Skeleton skel in skeletons)
+                    {
+                        if (skel.TrackingState == SkeletonTrackingState.Tracked)
+                        {
+
+                            //setRightPower = 1.0f;
+                            //setLeftPower = -1.0f;
+
+                            TestControls();
+
+                            break;
+                        }
+                        else
+                        {
+
+
+
+                            TestControls();
+                        }
+                    }
+                }
+            }
+        }
+
         private void TestControls()
         {
             if (voiceCommandHeard != null)
@@ -204,4 +274,3 @@ namespace SLAMBotClasses
 
     }
 }
-//comment
