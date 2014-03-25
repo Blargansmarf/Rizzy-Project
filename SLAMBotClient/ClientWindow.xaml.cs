@@ -126,7 +126,7 @@ namespace SLAMBotClient
                 TimeSpan timeLapse = endTurn - startTurn;
                 //Console.WriteLine("Change the values");
                 //***************************************
-
+                
 
                 //tcpClient.SendData(TCPSlamBase.MessageType.LeftMotor, BitConverter.GetBytes(e.LHandHeight));
                 //tcpClient.SendData(TCPSlamBase.MessageType.RightMotor, BitConverter.GetBytes(e.RHandHeight));
@@ -140,16 +140,15 @@ namespace SLAMBotClient
                     cameraWindow.Dispatcher.Invoke(DispatcherPriority.Normal, new Action(delegate() { cameraWindow.SetRightWheelPower(0.5); }));
                     cameraWindow.Dispatcher.Invoke(DispatcherPriority.Normal, new Action(delegate() { cameraWindow.UpdateLineGraphs(); }));
                 }
-
-                do
-                {
+                                
+                do{
                     endTurn = DateTime.Now;
                     timeLapse = endTurn - startTurn;
                     Console.WriteLine("timeLapse = " + timeLapse);
                 } while (timeLapse.Seconds < 2.5);  //attempt at 90 degree turn left
 
-                Console.WriteLine("Back to normal.");
-
+                Console.WriteLine("Back to normal.");                                         
+                                
             }
         }
         //// *************************************

@@ -19,8 +19,6 @@ namespace SLAMBotClasses
         #region members
 
         public event EventHandler<SkeletonArgs> onHandHeightChanged;
-        public event EventHandler<SkeletonArgs> Forward;
-        public event EventHandler<SkeletonArgs> Reverse;
         public event EventHandler<SkeletonArgs> onRightAngleTurn;
         public event EventHandler<SkeletonArgs> onLeftQuarterTurn;
         public event EventHandler<SkeletonArgs> onRightQuarterTurn;
@@ -28,8 +26,7 @@ namespace SLAMBotClasses
         public event EventHandler<SkeletonArgs> onLeftFullTurn;
         public event EventHandler<SkeletonArgs> onRightHalfTurn;
         public event EventHandler<SkeletonArgs> onRightFullTurn;
-        //private KinectSensor kinectSensor;
-        //public KinectSlam Ace; //able to do this
+        private KinectSensor kinectSensor;
         private DateTime lastSend;
         private double rHandHeight;
         private double lastHeightRHand;
@@ -52,9 +49,6 @@ namespace SLAMBotClasses
 
         private bool quarterRightFlag;
         private bool quarterLeftFlag;
-
-        private bool ForwardFlag;
-        private bool ReverseFlag;
 
         //private DateTime startTurn = DateTime.Now;
         //private DateTime endTurn;
@@ -96,7 +90,7 @@ namespace SLAMBotClasses
         /// </summary>
         public SkeletonSlam()
         {
-            //halfSpinFlag = false;
+            halfSpinFlag = false;
             fullSpinFlag = false;
 
             fullRightFlag = false;
@@ -106,13 +100,9 @@ namespace SLAMBotClasses
             quarterRightFlag = false;
             quarterLeftFlag = false;
 
-            ForwardFlag = false;
-            ReverseFlag = false;
-
 
             
             //kinectSensor = KinectSensor.KinectSensors[0];
-            //this.
 
             TransformSmoothParameters smoothingParam = new TransformSmoothParameters();
             {
@@ -125,14 +115,12 @@ namespace SLAMBotClasses
 
             
             
-            //kinectSensor.SkeletonStream.Enable(smoothingParam);  //
-            //kinectSensor.Start();  //
+            //kinectSensor.SkeletonStream.Enable(smoothingParam);
+            //kinectSensor.Start();
             
             reset();
 
-            //kinectSensor.SkeletonFrameReady += getSkeleton;  //
-            
-            
+            //kinectSensor.SkeletonFrameReady += getSkeleton;
 
             //processHandMove = new Thread(ProcessHandMove);
             //processHandMove.Start();
@@ -157,8 +145,7 @@ namespace SLAMBotClasses
 
         #region Private Methods
 
-        //private void getSkeleton(object sender, SkeletonFrameReadyEventArgs e)
-        public void getSkeleton(object sender, SkeletonFrameReadyEventArgs e)
+        private void getSkeleton(object sender, SkeletonFrameReadyEventArgs e)
         {
             SkeletonFrame skelFrame = e.OpenSkeletonFrame();
             if (skelFrame != null)
@@ -166,8 +153,6 @@ namespace SLAMBotClasses
                 Skeleton[] skeletons = new Skeleton[skelFrame.SkeletonArrayLength];
 
                 skelFrame.CopySkeletonDataTo(skeletons);
-
-                skelFrame.Dispose();
 
                 foreach (Skeleton skel in skeletons)
                 {
@@ -225,13 +210,12 @@ namespace SLAMBotClasses
                         else if (rHandy >= rHipy - .12 && rHandx > rHipx && rHandx < rHipx + .3)
                         {
                             rHandFwd = true;
-                            lHandFwd = true;
-                            ForwardFlag = true;
                             rHandHeight = rShoulderAboveHip - (rShoulderAboveHip - rHandAboveHip);
                         }
                         else if (rHandy < rHipy && rHandx > rHipx + .2)
                         {
                             //rHandHeight = -.5;  // commented to turn off right side reverse
+                            lHandHeight = -.5;
                         }
                         else
                             rHandHeight = 0;
@@ -243,13 +227,13 @@ namespace SLAMBotClasses
                             lHandHeight = 0;
                         else if (lHandy >= lHipy - .12 && lHandx < lHipx && lHandx > lHipx - .3)
                         {
-                            //lHandFwd = true;
+                            lHandFwd = true;
                             lHandHeight = lShoulderAboveHip - (lShoulderAboveHip - lHandAboveHip);
-                            ReverseFlag = true;
                         }
                         else if (lHandy < lHipy && lHandx < lHipx - .2)
                         {
                             //lHandHeight = -.5;  //commented to turn off left side reverse
+                            rHandHeight = -.5;
                         }
                         else
                             lHandHeight = 0;
@@ -258,34 +242,43 @@ namespace SLAMBotClasses
                         
                         if(rHandy > rHipy + 0.6 && rHandx > rHipx + 0.3)  // this works; upper right
                         {
-                            fullRightFlag = true;
+                            //fullRightFlag = true;
+                            fullLeftFlag = true;
                         }
-                        else if (rHandy >= rHipy + 0.15 && rHandy < rHipy + 0.6 && rHandx > rHipx + 0.4) // Testing.. might work
+                        //else if (rHandy >= rHipy + 0.15 && rHandy < rHipy + 0.6 && rHandx > rHipx + 0.4) // Testing.. might work
+                        else if (rHandy >= rHipy + 0.2 && rHandy < rHipy + 0.6 && rHandx > rHipx + 0.4)
                         {
                             // attempt at right mid-lvl hand pos, for 180 right turn  (use of shoulder)                            
                             //halfSpinRightFlag = true;
-                            quarterRightFlag = true;
+                            //halfSpinLeftFlag = true;
+
+                            quarterLeftFlag = true;
                         }                        
                         else if(lHandy > 0.2 && rHandx > rHipx + 0.2)
                         {
-                            quarterRightFlag = true;
+                            //quarterRightFlag = true;
+                            //quarterLeftFlag = true;
+                            halfSpinLeftFlag = true;
                         }
                         else if(lHandy > lHipy + 0.6 && lHandx < lHipx - 0.4)
                         {
-                            fullLeftFlag = true;
+                            //fullLeftFlag = true;
+                            fullRightFlag = true;
                         }
-                        else if(lHandy >= lHipy + 0.15 && lHandy < lHipy + 0.6 && lHandx < lHipx - 0.4)
+                        //else if(lHandy >= lHipy + 0.15 && lHandy < lHipy + 0.6 && lHandx < lHipx - 0.4)
+                        else if (lHandy >= lHipy + 0.2 && lHandy < lHipy + 0.6 && lHandx < lHipx - 0.25)
                         {
                             //halfSpinLeftFlag = true;
-                            quarterLeftFlag = true;
+                            //halfSpinRightFlag = true;
+
+                            quarterRightFlag = true;
                         }
                         else if (rHandy > 0.2 && lHandx < lHipx - 0.2)
                         {
-                            quarterLeftFlag = true;
-                        }
-                        else if(rHandx < rHipx && lHandx > lHipx)
-                        {
-                            fullLeftFlag = true;
+                            //quarterLeftFlag = true;
+                            //quarterRightFlag = true;
+
+                            halfSpinRightFlag = true;
                         }
 
 
@@ -361,24 +354,11 @@ namespace SLAMBotClasses
                     onRightQuarterTurn(this, args);
                     quarterRightFlag = false;
                 }
-                else if (ForwardFlag == true)
-                {                    
-                    Forward(this, args);
-                    ForwardFlag = false;
-                }
-                else if(ReverseFlag == true)
-                {
-                    ReverseFlag = false;
-                    Reverse(this, args);
-                }
-
-
-            /*
                 else
                 {
                     onHandHeightChanged(this, args);
                 }
-            */
+
             }
         }
 

@@ -19,8 +19,7 @@ namespace SLAMBotClasses
         #region Members
 
         public event EventHandler<AudioStreamArgs> OnAudioReady;
-        //private KinectSensor kinectSensor;
-        public KinectSensor kinectSensor;
+        private KinectSensor kinectSensor;
         private byte[] CurrentFrame;
         private Thread processFramesThread;
         private Thread processAudioThread;
@@ -42,8 +41,6 @@ namespace SLAMBotClasses
         private const int DataHeaderSize = 8;
         private const string DataHeaderTag = "data";
         private const int FullHeaderSize = RiffHeaderSize + WaveformatExSize + DataHeaderSize;
-
-        //SkeletonSlam Mav;
 
         #endregion
 
@@ -145,7 +142,7 @@ namespace SLAMBotClasses
         /// Starts a kinect, need to call this before using a Kinect. Most likely you will only have one Kinect hooked up.
         /// </summary>
         /// <param name="sensor">Pass in which Kinect you want to start. Use GetKinectList() to decide which Kinect to use.</param>
-        public void StartSensor(KinectSensor sensor)    // where is this called?
+        public void StartSensor(KinectSensor sensor)
         {
             StopSensor();
 
@@ -157,27 +154,9 @@ namespace SLAMBotClasses
 
             kinectSensor = sensor;
 
-            //*****************************************
-            //my addition, copied from SkeletonSlam
-            //*****************************************
-            TransformSmoothParameters smoothingParam = new TransformSmoothParameters();
-            {
-                smoothingParam.Smoothing = 0.5f;
-                smoothingParam.Correction = 0.5f;
-                smoothingParam.Prediction = 0.5f;
-                smoothingParam.JitterRadius = 0.05f;
-                smoothingParam.MaxDeviationRadius = 0.04f;
-            };
-
-            kinectSensor.SkeletonStream.Enable(smoothingParam);
-            //sensor.SkeletonStream.Enable(smoothingParam);
-            //kinectSensor.SkeletonStream.Enable(TransformSmoothParameters);
-            //kinectSensor.SkeletonFrameReady += getSkeleton;
-
             CurrentFrameNumber = 0;
             kinectSensor.ColorStream.Enable(ColorImageFormat.RgbResolution640x480Fps30);
             kinectSensor.Start();
-            //kinectSensor.SkeletonFrameReady += getSkeleton;  // getSkeleton?
             kinectSensor.ColorFrameReady += new System.EventHandler<ColorImageFrameReadyEventArgs>(kinectSensor_ColorFrameReady);
             audioStream = kinectSensor.AudioSource.Start();            
 

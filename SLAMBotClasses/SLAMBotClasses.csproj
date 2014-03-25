@@ -37,14 +37,6 @@
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\Microsoft.Kinect.dll</HintPath>
     </Reference>
-    <Reference Include="Microsoft.Speech, Version=10.2.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\..\..\..\Program Files\Microsoft Speech Platform SDK\Assembly\Microsoft.Speech.dll</HintPath>
-    </Reference>
-    <Reference Include="Microsoft.Speech.VoiceXml, Version=10.2.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\..\..\..\Program Files (x86)\Microsoft Speech Platform SDK\Assembly\Microsoft.Speech.VoiceXml.dll</HintPath>
-    </Reference>
     <Reference Include="Microsoft.Xna.Framework, Version=4.0.0.0, Culture=neutral, PublicKeyToken=842cf8be1de50553, processorArchitecture=x86" />
     <Reference Include="PresentationFramework" />
     <Reference Include="System" />
@@ -66,7 +58,6 @@
     <Compile Include="TCPSlamBase.cs" />
     <Compile Include="TCPSlamClient.cs" />
     <Compile Include="TCPSlamServer.cs" />
-    <Compile Include="VoiceControl.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="MicroControllerCode\MicroControllerCode.ino" />

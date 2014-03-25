@@ -94,7 +94,6 @@ namespace SLAMBotServer
 
             kinectManager = new KinectSlam();
             kinectManager.OnAudioReady += new EventHandler<KinectSlam.AudioStreamArgs>(kinectManager_OnAudioReady);
-            //kinectManager.
 
             tcpServer = new TCPSlamServer();
             tcpServer.Port = 9988;
@@ -141,7 +140,7 @@ namespace SLAMBotServer
             else if (e.MessageType == TCPSlamBase.MessageType.SendVideo)
             {
                 int kinect = e.Message[0];
-                kinectManager.StartSensor(kinectManager.GetKinectList()[1]);   // <-- StartSensor
+                kinectManager.StartSensor(kinectManager.GetKinectList()[1]);
                 sendVideo = true;
                 videoThread = new Thread(SendVideo);
                 videoThread.Start();
