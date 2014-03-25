@@ -28,9 +28,12 @@ namespace SLAMBotClient
         CameraWindow cameraWindow;
         TCPSlamClient tcpClient;
         ControllerSlam controller;
-        //SkeletonSlam skeleton;
-        VoiceControl voice;
+        SkeletonSlam skeleton;
         ArduinoSlam.ArduinoStatus ArduinoStatus = ArduinoSlam.ArduinoStatus.NotConnected;
+
+        // vars for 90 degree turns
+        DateTime startTurn = DateTime.Now;
+        DateTime endTurn;
 
         #endregion
 
@@ -52,10 +55,15 @@ namespace SLAMBotClient
 
         private void Window_Loaded(object sender, RoutedEventArgs e)
         {
-            //skeleton = new SkeletonSlam();
-            //skeleton.onHandHeightChanged += new EventHandler<SkeletonSlam.SkeletonArgs>(skeleton_onHandHeightChanged);
-            voice = new VoiceControl();
-            voice.voiceCommandHeard += new EventHandler<VoiceControl.VoiceArgs>(voice_commandHeard);
+            skeleton = new SkeletonSlam();
+            skeleton.onHandHeightChanged += new EventHandler<SkeletonSlam.SkeletonArgs>(skeleton_onHandHeightChanged);
+            skeleton.onRightAngleTurn += new EventHandler<SkeletonSlam.SkeletonArgs>(skeleton_onRightAngleTurn);
+            skeleton.onLeftQuarterTurn += new EventHandler<SkeletonSlam.SkeletonArgs>(skeleton_onLeftQuarterTurn);
+            skeleton.onRightQuarterTurn += new EventHandler<SkeletonSlam.SkeletonArgs>(skeleton_onRightQuarterTurn);
+            skeleton.onLeftHalfTurn += new EventHandler<SkeletonSlam.SkeletonArgs>(skeleton_onLeftHalfTurn);
+            skeleton.onLeftFullTurn += new EventHandler<SkeletonSlam.SkeletonArgs>(skeleton_onLeftFullTurn);
+            skeleton.onRightHalfTurn += new EventHandler<SkeletonSlam.SkeletonArgs>(skeleton_onRightHalfTurn);
+            skeleton.onRightFullTurn += new EventHandler<SkeletonSlam.SkeletonArgs>(skeleton_onRightFullTurn);
             controller = new ControllerSlam();
             controller.OnButtonsChanged += new EventHandler<ControllerSlam.ButtonArgs>(controller_OnButtonsChanged);
             tcpClient = new TCPSlamClient();
@@ -65,25 +73,13 @@ namespace SLAMBotClient
             txtIP.Text = Common.GetIP();
         }
 
-        void voice_commandHeard(object sender, VoiceControl.VoiceArgs e)
-        {
-            if (tcpClient != null && tcpClient.Status == TCPSlamClient.ClientStatus.Connected)
-            {
-                tcpClient.SendData(TCPSlamBase.MessageType.LeftMotor, BitConverter.GetBytes(e.leftPower));
-                tcpClient.SendData(TCPSlamBase.MessageType.RightMotor, BitConverter.GetBytes(e.rightPower));
-                if (cameraWindow != null)
-                {
-                    cameraWindow.Dispatcher.Invoke(DispatcherPriority.Normal, new Action(delegate() { cameraWindow.SetLeftWheelPower(e.leftPower); }));
-                    cameraWindow.Dispatcher.Invoke(DispatcherPriority.Normal, new Action(delegate() { cameraWindow.SetRightWheelPower(e.rightPower); }));
-                    cameraWindow.Dispatcher.Invoke(DispatcherPriority.Normal, new Action(delegate() { cameraWindow.UpdateLineGraphs(); }));
-                }
-            }
-        }
-
         void skeleton_onHandHeightChanged(object sender, SkeletonSlam.SkeletonArgs e)
         {
             if (tcpClient != null && tcpClient.Status == TCPSlamClient.ClientStatus.Connected)
             {
+                //for(int i =0; i<10; i++)
+                //    Console.WriteLine("R-HandHeight: " + e.RHandHeight);
+
                 tcpClient.SendData(TCPSlamBase.MessageType.LeftMotor, BitConverter.GetBytes(e.LHandHeight));
                 tcpClient.SendData(TCPSlamBase.MessageType.RightMotor, BitConverter.GetBytes(e.RHandHeight));
                 if (cameraWindow != null)
@@ -94,6 +90,310 @@ namespace SLAMBotClient
                 }
             }
         }
+
+        //*******************
+        // both wheels forward
+        //*******************
+        /*
+        void skeleton_Forward(object sender, SkeletonSlam.SkeletonArgs e)
+        {
+            if (tcpClient != null && tcpClient.Status == TCPSlamClient.ClientStatus.Connected)
+            {
+                //for(int i =0; i<10; i++)
+                //    Console.WriteLine("R-HandHeight: " + e.RHandHeight);
+
+                tcpClient.SendData(TCPSlamBase.MessageType.LeftMotor, BitConverter.GetBytes(e.RHandHeight));
+                tcpClient.SendData(TCPSlamBase.MessageType.RightMotor, BitConverter.GetBytes(e.RHandHeight));
+                if (cameraWindow != null)
+                {
+                    cameraWindow.Dispatcher.Invoke(DispatcherPriority.Normal, new Action(delegate() { cameraWindow.SetLeftWheelPower(e.RHandHeight); }));
+                    cameraWindow.Dispatcher.Invoke(DispatcherPriority.Normal, new Action(delegate() { cameraWindow.SetRightWheelPower(e.RHandHeight); }));
+                    cameraWindow.Dispatcher.Invoke(DispatcherPriority.Normal, new Action(delegate() { cameraWindow.UpdateLineGraphs(); }));
+                }
+            }
+        }
+         */
+
+        // My attempt at right angle turns // ****************
+        // works, turns left
+        void skeleton_onRightAngleTurn(object sender, SkeletonSlam.SkeletonArgs e)
+        {
+            if (tcpClient != null && tcpClient.Status == TCPSlamClient.ClientStatus.Connected)
+            {
+                // mine //*******************************
+                startTurn = DateTime.Now;
+                endTurn = DateTime.Now;
+                TimeSpan timeLapse = endTurn - startTurn;
+                //Console.WriteLine("Change the values");
+                //***************************************
+
+
+                //tcpClient.SendData(TCPSlamBase.MessageType.LeftMotor, BitConverter.GetBytes(e.LHandHeight));
+                //tcpClient.SendData(TCPSlamBase.MessageType.RightMotor, BitConverter.GetBytes(e.RHandHeight));
+                tcpClient.SendData(TCPSlamBase.MessageType.LeftMotor, BitConverter.GetBytes(-0.5));
+                tcpClient.SendData(TCPSlamBase.MessageType.RightMotor, BitConverter.GetBytes(0.5));
+
+                if (cameraWindow != null)
+                {
+                    Console.WriteLine("The values should be changed");
+                    cameraWindow.Dispatcher.Invoke(DispatcherPriority.Normal, new Action(delegate() { cameraWindow.SetLeftWheelPower(-0.5); }));
+                    cameraWindow.Dispatcher.Invoke(DispatcherPriority.Normal, new Action(delegate() { cameraWindow.SetRightWheelPower(0.5); }));
+                    cameraWindow.Dispatcher.Invoke(DispatcherPriority.Normal, new Action(delegate() { cameraWindow.UpdateLineGraphs(); }));
+                }
+
+                do
+                {
+                    endTurn = DateTime.Now;
+                    timeLapse = endTurn - startTurn;
+                    Console.WriteLine("timeLapse = " + timeLapse);
+                } while (timeLapse.Seconds < 2.5);  //attempt at 90 degree turn left
+
+                Console.WriteLine("Back to normal.");
+
+            }
+        }
+        //// *************************************
+
+        // Function for Left 90 degree turns // ****************
+        void skeleton_onLeftQuarterTurn(object sender, SkeletonSlam.SkeletonArgs e)
+        {
+            if (tcpClient != null && tcpClient.Status == TCPSlamClient.ClientStatus.Connected)
+            {
+                // mine //*******************************
+                startTurn = DateTime.Now;
+                endTurn = DateTime.Now;
+                TimeSpan timeLapse = endTurn - startTurn;
+                //Console.WriteLine("Change the values");
+                //***************************************
+
+
+                //tcpClient.SendData(TCPSlamBase.MessageType.LeftMotor, BitConverter.GetBytes(e.LHandHeight));
+                //tcpClient.SendData(TCPSlamBase.MessageType.RightMotor, BitConverter.GetBytes(e.RHandHeight));
+                tcpClient.SendData(TCPSlamBase.MessageType.LeftMotor, BitConverter.GetBytes(-0.5));
+                tcpClient.SendData(TCPSlamBase.MessageType.RightMotor, BitConverter.GetBytes(0.5));
+
+                if (cameraWindow != null)
+                {
+                    Console.WriteLine("The values should be changed");
+                    cameraWindow.Dispatcher.Invoke(DispatcherPriority.Normal, new Action(delegate() { cameraWindow.SetLeftWheelPower(-0.5); }));
+                    cameraWindow.Dispatcher.Invoke(DispatcherPriority.Normal, new Action(delegate() { cameraWindow.SetRightWheelPower(0.5); }));
+                    cameraWindow.Dispatcher.Invoke(DispatcherPriority.Normal, new Action(delegate() { cameraWindow.UpdateLineGraphs(); }));
+                }
+
+                do
+                {
+                    endTurn = DateTime.Now;
+                    timeLapse = endTurn - startTurn;
+                    //Console.WriteLine("timeLapse = " + timeLapse);
+                    Console.WriteLine("Left Quarter turn: " + timeLapse);
+                } while (timeLapse.Seconds < 2.5);
+
+                Console.WriteLine("Back to normal.");
+
+            }
+        }
+        //// *************************************
+
+        // Function for Right 90 degree turns // ****************
+        void skeleton_onRightQuarterTurn(object sender, SkeletonSlam.SkeletonArgs e)
+        {
+            if (tcpClient != null && tcpClient.Status == TCPSlamClient.ClientStatus.Connected)
+            {
+                // mine //*******************************
+                startTurn = DateTime.Now;
+                endTurn = DateTime.Now;
+                TimeSpan timeLapse = endTurn - startTurn;
+                Console.WriteLine("Change the values");
+                //***************************************
+
+
+                //tcpClient.SendData(TCPSlamBase.MessageType.LeftMotor, BitConverter.GetBytes(e.LHandHeight));
+                //tcpClient.SendData(TCPSlamBase.MessageType.RightMotor, BitConverter.GetBytes(e.RHandHeight));
+                tcpClient.SendData(TCPSlamBase.MessageType.LeftMotor, BitConverter.GetBytes(0.5));
+                tcpClient.SendData(TCPSlamBase.MessageType.RightMotor, BitConverter.GetBytes(-0.5));
+
+                if (cameraWindow != null)
+                {
+                    //Console.WriteLine("The values should be changed");
+                    cameraWindow.Dispatcher.Invoke(DispatcherPriority.Normal, new Action(delegate() { cameraWindow.SetLeftWheelPower(0.5); }));
+                    cameraWindow.Dispatcher.Invoke(DispatcherPriority.Normal, new Action(delegate() { cameraWindow.SetRightWheelPower(-0.5); }));
+                    cameraWindow.Dispatcher.Invoke(DispatcherPriority.Normal, new Action(delegate() { cameraWindow.UpdateLineGraphs(); }));
+                }
+
+                do
+                {
+                    endTurn = DateTime.Now;
+                    timeLapse = endTurn - startTurn;
+                    //Console.WriteLine("timeLapse = " + timeLapse);
+                    Console.WriteLine("Right Quarter turn: " + timeLapse);
+                } while (timeLapse.Seconds < 2.5);
+
+                Console.WriteLine("Back to normal.");
+
+            }
+        }
+        //// *************************************
+
+        // Function for Left 180 degree turns // ****************
+        void skeleton_onLeftHalfTurn(object sender, SkeletonSlam.SkeletonArgs e)
+        {
+            if (tcpClient != null && tcpClient.Status == TCPSlamClient.ClientStatus.Connected)
+            {
+                // mine //*******************************
+                startTurn = DateTime.Now;
+                endTurn = DateTime.Now;
+                TimeSpan timeLapse = endTurn - startTurn;
+                //Console.WriteLine("Change the values");
+                //***************************************
+
+
+                //tcpClient.SendData(TCPSlamBase.MessageType.LeftMotor, BitConverter.GetBytes(e.LHandHeight));
+                //tcpClient.SendData(TCPSlamBase.MessageType.RightMotor, BitConverter.GetBytes(e.RHandHeight));
+                tcpClient.SendData(TCPSlamBase.MessageType.LeftMotor, BitConverter.GetBytes(-0.5));
+                tcpClient.SendData(TCPSlamBase.MessageType.RightMotor, BitConverter.GetBytes(0.5));
+
+                if (cameraWindow != null)
+                {
+                    //Console.WriteLine("The values should be changed");
+                    cameraWindow.Dispatcher.Invoke(DispatcherPriority.Normal, new Action(delegate() { cameraWindow.SetLeftWheelPower(-0.5); }));
+                    cameraWindow.Dispatcher.Invoke(DispatcherPriority.Normal, new Action(delegate() { cameraWindow.SetRightWheelPower(0.5); }));
+                    cameraWindow.Dispatcher.Invoke(DispatcherPriority.Normal, new Action(delegate() { cameraWindow.UpdateLineGraphs(); }));
+                }
+
+                do
+                {
+                    endTurn = DateTime.Now;
+                    timeLapse = endTurn - startTurn;
+                    //Console.WriteLine("timeLapse = " + timeLapse);
+                    Console.WriteLine("Left Half turn: " + timeLapse);
+                } while (timeLapse.Seconds < 5);
+
+                Console.WriteLine("Back to normal.");
+
+            }
+        }
+        //// *************************************
+
+        // Function for Left 360 degree turns // ****************
+        void skeleton_onLeftFullTurn(object sender, SkeletonSlam.SkeletonArgs e)
+        {
+            if (tcpClient != null && tcpClient.Status == TCPSlamClient.ClientStatus.Connected)
+            {
+                // mine //*******************************
+                startTurn = DateTime.Now;
+                endTurn = DateTime.Now;
+                TimeSpan timeLapse = endTurn - startTurn;
+                //Console.WriteLine("Change the values");
+                //***************************************
+
+
+                //tcpClient.SendData(TCPSlamBase.MessageType.LeftMotor, BitConverter.GetBytes(e.LHandHeight));
+                //tcpClient.SendData(TCPSlamBase.MessageType.RightMotor, BitConverter.GetBytes(e.RHandHeight));
+                tcpClient.SendData(TCPSlamBase.MessageType.LeftMotor, BitConverter.GetBytes(-0.5));
+                tcpClient.SendData(TCPSlamBase.MessageType.RightMotor, BitConverter.GetBytes(0.5));
+
+                if (cameraWindow != null)
+                {
+                    //Console.WriteLine("The values should be changed");
+                    cameraWindow.Dispatcher.Invoke(DispatcherPriority.Normal, new Action(delegate() { cameraWindow.SetLeftWheelPower(-0.5); }));
+                    cameraWindow.Dispatcher.Invoke(DispatcherPriority.Normal, new Action(delegate() { cameraWindow.SetRightWheelPower(0.5); }));
+                    cameraWindow.Dispatcher.Invoke(DispatcherPriority.Normal, new Action(delegate() { cameraWindow.UpdateLineGraphs(); }));
+                }
+
+                do
+                {
+                    endTurn = DateTime.Now;
+                    timeLapse = endTurn - startTurn;
+                    //Console.WriteLine("timeLapse = " + timeLapse);
+                    Console.WriteLine("Left Full turn: " + timeLapse);
+                } while (timeLapse.Seconds < 10);
+
+                Console.WriteLine("Back to normal.");
+
+            }
+        }
+        //// *************************************
+
+        // Function for Right 180 degree turns // ****************
+        void skeleton_onRightHalfTurn(object sender, SkeletonSlam.SkeletonArgs e)
+        {
+            if (tcpClient != null && tcpClient.Status == TCPSlamClient.ClientStatus.Connected)
+            {
+                // mine //*******************************
+                startTurn = DateTime.Now;
+                endTurn = DateTime.Now;
+                TimeSpan timeLapse = endTurn - startTurn;
+                //Console.WriteLine("Change the values");
+                //***************************************
+
+
+                //tcpClient.SendData(TCPSlamBase.MessageType.LeftMotor, BitConverter.GetBytes(e.LHandHeight));
+                //tcpClient.SendData(TCPSlamBase.MessageType.RightMotor, BitConverter.GetBytes(e.RHandHeight));
+                tcpClient.SendData(TCPSlamBase.MessageType.LeftMotor, BitConverter.GetBytes(0.5));
+                tcpClient.SendData(TCPSlamBase.MessageType.RightMotor, BitConverter.GetBytes(-0.5));
+
+                if (cameraWindow != null)
+                {
+                    //Console.WriteLine("The values should be changed");
+                    cameraWindow.Dispatcher.Invoke(DispatcherPriority.Normal, new Action(delegate() { cameraWindow.SetLeftWheelPower(0.5); }));
+                    cameraWindow.Dispatcher.Invoke(DispatcherPriority.Normal, new Action(delegate() { cameraWindow.SetRightWheelPower(-0.5); }));
+                    cameraWindow.Dispatcher.Invoke(DispatcherPriority.Normal, new Action(delegate() { cameraWindow.UpdateLineGraphs(); }));
+                }
+
+                do
+                {
+                    endTurn = DateTime.Now;
+                    timeLapse = endTurn - startTurn;
+                    //Console.WriteLine("timeLapse = " + timeLapse);
+                    Console.WriteLine("Right Half turn: " + timeLapse);
+                } while (timeLapse.Seconds < 5);
+
+                Console.WriteLine("Back to normal.");
+
+            }
+        }
+
+        // Function for Right 360 degree turns // ****************
+        void skeleton_onRightFullTurn(object sender, SkeletonSlam.SkeletonArgs e)
+        {
+            if (tcpClient != null && tcpClient.Status == TCPSlamClient.ClientStatus.Connected)
+            {
+                // mine //*******************************
+                startTurn = DateTime.Now;
+                endTurn = DateTime.Now;
+                TimeSpan timeLapse = endTurn - startTurn;
+                //Console.WriteLine("Change the values");
+                //***************************************
+
+
+                //tcpClient.SendData(TCPSlamBase.MessageType.LeftMotor, BitConverter.GetBytes(e.LHandHeight));
+                //tcpClient.SendData(TCPSlamBase.MessageType.RightMotor, BitConverter.GetBytes(e.RHandHeight));
+                tcpClient.SendData(TCPSlamBase.MessageType.LeftMotor, BitConverter.GetBytes(0.5));
+                tcpClient.SendData(TCPSlamBase.MessageType.RightMotor, BitConverter.GetBytes(-0.5));
+
+                if (cameraWindow != null)
+                {
+                    //Console.WriteLine("The values should be changed");
+                    cameraWindow.Dispatcher.Invoke(DispatcherPriority.Normal, new Action(delegate() { cameraWindow.SetLeftWheelPower(0.5); }));
+                    cameraWindow.Dispatcher.Invoke(DispatcherPriority.Normal, new Action(delegate() { cameraWindow.SetRightWheelPower(-0.5); }));
+                    cameraWindow.Dispatcher.Invoke(DispatcherPriority.Normal, new Action(delegate() { cameraWindow.UpdateLineGraphs(); }));
+                }
+
+                do
+                {
+                    endTurn = DateTime.Now;
+                    timeLapse = endTurn - startTurn;
+                    //Console.WriteLine("timeLapse = " + timeLapse);
+                    Console.WriteLine("Right Full turn: " + timeLapse);
+                } while (timeLapse.Seconds < 10);
+
+                Console.WriteLine("Back to normal.");
+
+            }
+        }
+        //// *************************************
+
+
 
         void controller_OnButtonsChanged(object sender, ControllerSlam.ButtonArgs e)
         {

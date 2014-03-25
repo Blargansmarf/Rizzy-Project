@@ -16,7 +16,7 @@ namespace SLAMBotClasses
         public enum ClientStatus { Connecting, Connected, Disconnected };
         private Thread connectThread;
         private ClientStatus _Status;
-       
+
         #endregion
 
         #region Properties
@@ -100,7 +100,7 @@ namespace SLAMBotClasses
         {
             base.CloseConnection();
             if (connectThread.IsAlive)
-                connectThread.Abort();            
+                connectThread.Abort();
         }
 
         #endregion
